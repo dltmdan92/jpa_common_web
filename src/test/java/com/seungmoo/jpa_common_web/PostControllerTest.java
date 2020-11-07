@@ -139,4 +139,27 @@ public class PostControllerTest {
         List<Post> all = postRepository.findAll();
         assertThat(all.size()).isEqualTo(1);
     }
+
+    @Test
+    public void findByTitleStartsWith() {
+        Post post = new Post();
+        post.setTitle("Spring Data Jpa");
+        Post savedPost = postRepository.save(post); // persist
+
+        List<Post> all = postRepository.findByTitleStartsWith("Spring");
+        assertThat(all.size()).isEqualTo(1);
+    }
+
+    private void savePost() {
+        Post post = new Post();
+        post.setTitle("Spring");
+        postRepository.save(post); // persist
+    }
+
+    @Test
+    public void findByTitle() {
+        savePost();
+        List<Post> all = postRepository.findByTitle("Spring");
+        assertThat(all.size()).isEqualTo(1);
+    }
 }
