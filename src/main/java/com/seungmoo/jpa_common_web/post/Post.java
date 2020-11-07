@@ -9,7 +9,7 @@ import java.util.Date;
 @Entity
 @Getter @Setter
 public class Post {
-    @Id
+    @Id @GeneratedValue
     private Long id;
 
     private String title;
