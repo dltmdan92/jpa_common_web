@@ -7,6 +7,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -150,10 +153,10 @@ public class PostControllerTest {
         assertThat(all.size()).isEqualTo(1);
     }
 
-    private void savePost() {
+    private Post savePost() {
         Post post = new Post();
         post.setTitle("Spring");
-        postRepository.save(post); // persist
+        return postRepository.save(post); // persist
     }
 
     @Test
@@ -161,5 +164,30 @@ public class PostControllerTest {
         savePost();
         List<Post> all = postRepository.findByTitle("Spring");
         assertThat(all.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void findByTitleAndSort() {
+        savePost();
+        List<Post> all = postRepository.findByTitle2("Spring", Sort.by("title"));
+        // 원래는 Sort에는 프로퍼티, alias만 들어갈 수 있다. But 아래와 같은 방법으로 우회 가능하다.
+        List<Post> all2 = postRepository.findByTitle2("Spring", JpaSort.unsafe("LENGTH(title)"));
+        assertThat(all.size()).isEqualTo(1);
+        assertThat(all2.size()).isEqualTo(1);
+    }
+
+    @Test
+    public void updateTitle() {
+        Post spring = savePost();
+
+        String hibernate = "hibernate";
+        // update 또는 delete 시, @Query로 처리하는 것은 추천하지 않는다. (flush와 clear 처리가 별도로 필요하기 때문)
+        int update = postRepository.updateTitle(hibernate, spring.getId());
+        assertThat(update).isEqualTo(1);
+
+        // 위에서 update를 해도 여기서 select를 하지 않는다.
+        // spring은 여전히 persistent 상태이므로, 굳이 DB를 호출하지 않는다. clearAutomatically 처리를 해주도록 한다.
+        Optional<Post> byId = postRepository.findById(spring.getId());
+        assertThat(byId.get().getTitle()).isEqualTo(hibernate);
     }
 }
