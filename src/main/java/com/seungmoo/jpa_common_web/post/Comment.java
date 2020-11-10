@@ -29,6 +29,11 @@ public class Comment {
 
     private boolean best;
 
+    // EnumType은 반드시! STRING으로 해야 한다.
+    // EnumType이 ORDINAL일 경우, 0, 1, 2 이렇게 순서로 매핑 된다... --> 만약 ENUM에서 코드 순서를 바꾸면 매우 큰 문제가 발생하게 됨
+    @Enumerated(value = EnumType.STRING)
+    private CommentStatus commentStatus;
+
     /**
      * Auditing 기능
      * 엔티티의 변경 시점에 언제, 누가 변경했는지에 대한 정보를 기록하는 기능
